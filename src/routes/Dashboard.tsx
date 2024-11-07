@@ -1,10 +1,10 @@
 import { useState, MouseEvent, useMemo, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDone, selectInProgress, selectTodos } from '../store/noteTaking/noteTaking.selectors';
-import { setDone, setInProgress, setTodos } from '../store/noteTaking/noteTaking.slice';
+import { addDone, addInProgress, addTodo, removeDone, removeInProgress, removeTodo, setDone, setInProgress, setTodos, updateDone, updateInProgress, updateTodo } from '../store/noteTaking/noteTaking.slice';
 import Modal from '../components/Modal';
 import { Note, NoteTypes } from '../types';
-import { createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
+import { changeNoteType, createNote, getNotesAndDocuments, listenForDonesUpdates, listenForInProgressesUpdates, listenForTodosUpdates } from '../utils/firebase/firebase.utils';
 import { selectEmail } from '../store/auth/auth.selectors';
 import { getDateStringFromSeconds } from '../utils/noteTaking';
 
@@ -35,6 +35,27 @@ const  Dashboard = () => {
 
     const [dragTarget, setDragTarget] = useState<NoteTypes | "">("");
     
+    useEffect(()=>{
+        const unsubscribe = listenForTodosUpdates(dispatch, addTodo, updateTodo, removeTodo, email as string);
+        return () => {
+            unsubscribe();
+        }
+    }, []);
+
+    useEffect(()=>{
+        const unsubscribe = listenForInProgressesUpdates(dispatch, addInProgress, updateInProgress, removeInProgress, email as string);
+        return () => {
+            unsubscribe();
+        }
+    }, []);
+
+    useEffect(()=>{
+        const unsubscribe = listenForDonesUpdates(dispatch, addDone, updateDone, removeDone, email as string);
+        return () => {
+            unsubscribe();
+        }
+    }, []);
+
     const fetchTodos = async () => {
         const response = await getNotesAndDocuments('todo');
         dispatch(setTodos(response.docs.map((doc) => ({...doc.data(), 
@@ -42,6 +63,7 @@ const  Dashboard = () => {
             createdAt: getDateStringFromSeconds(doc.data().createdAt.seconds)
         } as Note))))
     };
+
     useEffect(()=>{
         fetchTodos()
     }, []);
@@ -178,7 +200,6 @@ const  Dashboard = () => {
 
     const onDropHandler = async(source: NoteTypes, sourceValue: Note) => {
         if(dragTarget != source && dragTarget){
-            // await changeNoteType(source, dragTarget, sourceValue, email);
             switch(dragTarget){
                 case 'todo':
                     dispatch(setTodos([...todos, sourceValue]));
@@ -186,7 +207,7 @@ const  Dashboard = () => {
                 case 'inProgress':
                     dispatch(setInProgress([...inProgresses, sourceValue]));
                     break;
-                case 'done':
+                    case 'done':
                     dispatch(setDone([...dones, sourceValue]));
                     break;
             }
@@ -201,6 +222,13 @@ const  Dashboard = () => {
                 case 'done':
                     dispatch(setDone(dones.filter((done) => done != sourceValue)));
                     break;
+            }
+            try {
+                await changeNoteType(source, dragTarget, sourceValue, email as string);
+            } catch (error) {
+                fetchTodos()
+                fetchInProgresses()
+                fetchDones()
             }
         }
         setDragTarget("")

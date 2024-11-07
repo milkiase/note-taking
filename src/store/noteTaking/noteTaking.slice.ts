@@ -27,18 +27,37 @@ const noteTakingSlice = createSlice({
         setDone(state, action:PayloadAction<Note[]>) {
             state.done = action.payload;
         },
-        updateTodo(state, action:PayloadAction<{title: string, value: Note}>) {
-            state.todos = [...state.todos.map(todo => todo.title === action.payload.title ? action.payload.value : todo)];
+        updateTodo(state, action:PayloadAction<{id: string, value: Note}>) {
+            state.todos = [...state.todos.map(todo => todo.id === action.payload.id ? action.payload.value : todo)];
         },
-        updateInProgress(state, action:PayloadAction<{title: string, value: Note}>) {
-            state.inProgress = [...state.inProgress.map(inProgress => inProgress.title === action.payload.title ? action.payload.value : inProgress)];
+        updateInProgress(state, action:PayloadAction<{id: string, value: Note}>) {
+            state.inProgress = [...state.inProgress.map(inProgress => inProgress.id === action.payload.id ? action.payload.value : inProgress)];
         },
-        updateDone(state, action:PayloadAction<{title: string, value: Note}>) {
-            state.done = [...state.done.map(done => done.title === action.payload.title ? action.payload.value : done)];
+        updateDone(state, action:PayloadAction<{id: string, value: Note}>) {
+            state.done = [...state.done.map(done => done.id === action.payload.id ? action.payload.value : done)];
+        },
+        addTodo(state, action:PayloadAction<Note>) {
+            state.todos = [...state.todos, action.payload]
+        },
+        addInProgress(state, action:PayloadAction<Note>) {
+            state.inProgress = [...state.inProgress, action.payload]
+        },
+        addDone(state, action:PayloadAction<Note>) {
+            state.done = [...state.done, action.payload]
+        },
+        removeTodo(state, action: PayloadAction<string>) {
+            state.todos = state.todos.filter(todo => todo.id!== action.payload);
+        },
+        removeInProgress(state, action: PayloadAction<string>) {
+            state.inProgress = state.inProgress.filter(inProgress => inProgress.id!== action.payload);
+        },
+        removeDone(state, action: PayloadAction<string>) {
+            state.done = state.done.filter(done => done.id!== action.payload);
         }
     }
 });
 
-export const { setTodos, setInProgress, setDone, updateTodo, updateInProgress, updateDone } = noteTakingSlice.actions;
+export const { setTodos, setInProgress, setDone, updateTodo, updateInProgress, updateDone,
+    addTodo, addInProgress, addDone, removeTodo, removeInProgress, removeDone } = noteTakingSlice.actions;
 
 export const noteTakingReducer = noteTakingSlice.reducer;

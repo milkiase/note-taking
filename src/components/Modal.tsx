@@ -25,13 +25,13 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
   useEffect(()=>{
     switch(type){
       case 'todo':
-        dispatch(updateTodo({title: value.title, value: {...value, description: quillValue}}));
+        dispatch(updateTodo({id: value.id as string, value: {...value, description: quillValue}}));
         break;
       case 'inProgress':
-        dispatch(updateInProgress({title: value.title, value: {...value, description: quillValue}}));
+        dispatch(updateInProgress({id: value.id as string, value: {...value, description: quillValue}}));
         break;
       case 'done':
-          dispatch(updateDone({title: value.title, value: {...value, description: quillValue}}));
+          dispatch(updateDone({id: value.id as string, value: {...value, description: quillValue}}));
           break;
       default:
         break;
@@ -42,13 +42,13 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
     if(isCommenting && newComment) {
       switch(type){
         case 'todo':
-          dispatch(updateTodo({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
+          dispatch(updateTodo({id: value.id as string, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
           break;
         case 'inProgress':
-          dispatch(updateInProgress({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
+          dispatch(updateInProgress({id: value.id as string, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
           break;
         case 'done':
-            dispatch(updateDone({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
+            dispatch(updateDone({id: value.id as string, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
             break;
         default:
           break;

@@ -1,10 +1,11 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { doc, getDoc, setDoc, serverTimestamp, query, collection, getDocs, writeBatch} from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, query, collection, getDocs, writeBatch, onSnapshot } from 'firebase/firestore';
 import {nanoid} from "nanoid";
 
 import { Note, NoteTypes } from '../../types';
+import { Dispatch, UnknownAction, ActionCreatorWithPayload } from '@reduxjs/toolkit';
 
 const firebaseConfig = {
     "apiKey" : import.meta.env.VITE_API_KEY ,
@@ -85,7 +86,7 @@ export const changeNoteType = async(source: NoteTypes, target: NoteTypes, note: 
 
   const batch = writeBatch(db);
   batch.delete(sourceRef);
-  batch.set(targetDocRef, { ...note, updatedBy: email, updatedAt: serverTimestamp() });
+  batch.set(targetDocRef, { ...note, updatedBy: email, updatedAt: serverTimestamp(), createdBy: email, createdAt: serverTimestamp() });
 
   try {
       await batch.commit();
@@ -102,3 +103,83 @@ export const changeNoteType = async(source: NoteTypes, target: NoteTypes, note: 
       console.error("Error moving document:", error);
   }
 };
+
+export const listenForTodosUpdates = (dispatch: Dispatch<UnknownAction>, 
+    addTodo: ActionCreatorWithPayload<Note, "noteTaking/addTodo">, 
+    updateInProgress: ActionCreatorWithPayload<{ id: string; value: Note; }, "noteTaking/updateTodo">, 
+    removeInProgress: ActionCreatorWithPayload<string, "noteTaking/removeTodo">,
+    email: string) => {
+  const todosCollectionRef = collection(db, "todo");
+
+  // Attach a listener to the collection
+  const unsubscribe = onSnapshot(todosCollectionRef, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+          const docData = change.doc.data();
+          if(docData.updatedBy === email) return;
+          if (change.type === "added") {
+              dispatch(addTodo(docData as Note));
+          }
+          if (change.type === "modified") {
+              dispatch(updateInProgress({id: docData.id, value: docData as Note}))
+          }
+          if (change.type === "removed") {
+              dispatch(removeInProgress(docData.id));
+          }
+      });
+
+  });
+
+  return unsubscribe;
+}
+
+export const listenForInProgressesUpdates = (dispatch: Dispatch<UnknownAction>, addTodo: ActionCreatorWithPayload<Note, "noteTaking/addInProgress">, 
+  updateTodo: ActionCreatorWithPayload<{ id: string; value: Note; }, "noteTaking/updateInProgress">, 
+  removeTodo: ActionCreatorWithPayload<string, "noteTaking/removeInProgress">, email: string) => {
+  const todosCollectionRef = collection(db, "inProgress");
+
+  // Attach a listener to the collection
+  const unsubscribe = onSnapshot(todosCollectionRef, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+          const docData = change.doc.data();
+          if(docData.updatedBy === email) return;
+          if (change.type === "added") {
+              dispatch(addTodo(docData as Note));
+          }
+          if (change.type === "modified") {
+              dispatch(updateTodo({id: docData.id, value: docData as Note}))
+          }
+          if (change.type === "removed") {
+              dispatch(removeTodo(docData.id));
+          }
+      });
+
+  });
+
+  return unsubscribe;
+}
+
+export const listenForDonesUpdates = (dispatch: Dispatch<UnknownAction>, addDone: ActionCreatorWithPayload<Note, "noteTaking/addDone">, 
+  updateDone: ActionCreatorWithPayload<{ id: string; value: Note; }, "noteTaking/updateDone">, 
+  removeDone: ActionCreatorWithPayload<string, "noteTaking/removeDone">, email: string) => {
+  const todosCollectionRef = collection(db, "done");
+
+  // Attach a listener to the collection
+  const unsubscribe = onSnapshot(todosCollectionRef, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+          const docData = change.doc.data();
+          if(docData.updatedBy === email) return;
+          console.log("updated by: ", docData.updatedBy)
+          if (change.type === "added") {
+              dispatch(addDone(docData as Note));
+          }
+          if (change.type === "modified") {
+              dispatch(updateDone({id: docData.id, value: docData as Note}))
+          }
+          if (change.type === "removed") {
+              dispatch(removeDone(docData.id));
+          }
+      });
+  });
+
+  return unsubscribe;
+}
