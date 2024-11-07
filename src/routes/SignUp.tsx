@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { signUpUser } from "../utils/firebase/firebase.utils";
+import { useDispatch } from "react-redux";
+import { setUID, setAccessToken, setUserEmail } from "../store/auth/auth.slice";
 
 function SingUp() {
+    const dispatch = useDispatch();
+    const navigate = useNavigate()
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,6 +19,10 @@ function SingUp() {
             }
             try{
                 const response = await signUpUser(email, password);
+                dispatch(setUID(response.uid));
+                dispatch(setAccessToken(await response.getIdToken()));
+                dispatch(setUserEmail(response.email as string))
+                navigate('/');
                 console.log("sing up response", response)
             }catch(error){
                 console.log({error})

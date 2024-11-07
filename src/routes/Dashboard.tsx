@@ -4,8 +4,9 @@ import { selectDone, selectInProgress, selectTodos } from '../store/noteTaking/n
 import { setDone, setInProgress, setTodos } from '../store/noteTaking/noteTaking.slice';
 import Modal from '../components/Modal';
 import { Note, NoteTypes } from '../types';
-import { createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
+import { changeNoteType, createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
 import { selectEmail } from '../store/auth/auth.selectors';
+import { getDateStringFromSeconds } from '../utils/noteTaking';
 
 const  Dashboard = () => {
     const dispatch = useDispatch();
@@ -32,11 +33,14 @@ const  Dashboard = () => {
     const [currentAdd, setCurrentAdd] = useState<"todo" | "inprogress" | "done" | "">("");
     const [isAdding, setIsAdding] = useState(false);
 
-    const [dragTarget, setDragTarget] = useState("");
+    const [dragTarget, setDragTarget] = useState<NoteTypes | "">("");
     
     const fetchTodos = async () => {
         const response = await getNotesAndDocuments('todo');
-        dispatch(setTodos(response.docs.map((doc) => doc.data() as Note)))
+        dispatch(setTodos(response.docs.map((doc) => ({...doc.data(), 
+            updatedAt: getDateStringFromSeconds(doc.data().updatedAt.seconds) , 
+            createdAt: getDateStringFromSeconds(doc.data().createdAt.seconds)
+        } as Note))))
     };
     useEffect(()=>{
         fetchTodos()
@@ -44,7 +48,10 @@ const  Dashboard = () => {
 
     const fetchInProgresses = async () => {
         const response = await getNotesAndDocuments('inProgress');
-        dispatch(setInProgress(response.docs.map((doc) => doc.data() as Note)))
+        dispatch(setInProgress(response.docs.map((doc) => ({...doc.data(),
+            updatedAt: getDateStringFromSeconds(doc.data().updatedAt.seconds) , 
+            createdAt: getDateStringFromSeconds(doc.data().createdAt.seconds)
+        } as Note))))
     };
     useEffect(()=>{
         fetchInProgresses()
@@ -52,7 +59,10 @@ const  Dashboard = () => {
 
     const fetchDones = async () => {
         const response = await getNotesAndDocuments('done');
-        dispatch(setDone(response.docs.map((doc) => doc.data() as Note)))
+        dispatch(setDone(response.docs.map((doc) => ({...doc.data(),
+            updatedAt: getDateStringFromSeconds(doc.data().updatedAt.seconds) , 
+            createdAt: getDateStringFromSeconds(doc.data().createdAt.seconds)
+        } as Note))))
     };
     useEffect(()=>{
         fetchDones();
@@ -161,12 +171,14 @@ const  Dashboard = () => {
         }
     }
 
-    const onDragEnterHandler = (target: string) => {
+    const onDragEnterHandler = (target: NoteTypes) => {
         setDragTarget(target)
         // setDragSource(target)
-    }
-    const onDropHandler = (source: string, sourceValue: Note) => {
-        if(dragTarget != source){
+    };
+
+    const onDropHandler = async(source: NoteTypes, sourceValue: Note) => {
+        if(dragTarget != source && dragTarget){
+            // await changeNoteType(source, dragTarget, sourceValue, email);
             switch(dragTarget){
                 case 'todo':
                     dispatch(setTodos([...todos, sourceValue]));
@@ -215,7 +227,7 @@ return (
                 <div>ToDo</div>
                 <div className=' flex flex-col gap-2 text-sm' >
                     {
-                        [...todos].reverse().map((todo, index)=>{
+                        [...todos].map((todo, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(todo, 'todo')}>
                                 <input type="text" value={edittingTodoIndex === index ?  edittingTodo: todo.title} className={`rounded-lg p-2 w-full cursor-pointer ${edittingTodoIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
                                     draggable={edittingTodoIndex != index} 
@@ -250,7 +262,7 @@ return (
                 <div>In Progress</div>
                 <div className=' flex flex-col gap-2 text-sm' onDragEnter={() => onDragEnterHandler('inProgress')}>
                     {
-                        [...inProgresses].reverse().map((inProgress, index)=>{
+                        [...inProgresses].map((inProgress, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(inProgress, "inProgress")}>
                                 <input type="text" value={edittingInProgressIndex === index ?  edittingInProgress: inProgress.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingInProgressIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
@@ -286,7 +298,7 @@ return (
                 <div className=' flex flex-col gap-2 text-sm'>
 
                     {
-                        [...dones].reverse().map((done, index)=>{
+                        [...dones].map((done, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(done, "done")}>
                                 <input type="text" value={edittingDoneIndex === index ?  edittingDone: done.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingDoneIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
@@ -318,9 +330,6 @@ return (
                 </div>
             </div>
         </div>
-        {/* {
-            JSON.stringify(todos)
-        } */}
         {
             showModal && modalValue && modalNote && <Modal value={modalNote} type={modalValue.type} onClose={closeModalHandler}></Modal>
         }
