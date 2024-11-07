@@ -318,9 +318,9 @@ return (
                 </div>
             </div>
         </div>
-        {
+        {/* {
             JSON.stringify(todos)
-        }
+        } */}
         {
             showModal && modalValue && modalNote && <Modal value={modalNote} type={modalValue.type} onClose={closeModalHandler}></Modal>
         }
