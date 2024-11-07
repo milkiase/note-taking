@@ -79,7 +79,7 @@ export const getNotesAndDocuments = async(type: NoteTypes) => {
 }
 
 export const changeNoteType = async(source: NoteTypes, target: NoteTypes, note: Note, email: string) => {
-  const sourceRef = doc(db, source, note.id);
+  const sourceRef = doc(db, source, note.id as string);
   const targetCollectionRef = collection(db, target);
   const targetDocRef = doc(targetCollectionRef, note.id);
 

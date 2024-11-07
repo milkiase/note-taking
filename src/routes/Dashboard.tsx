@@ -4,7 +4,7 @@ import { selectDone, selectInProgress, selectTodos } from '../store/noteTaking/n
 import { setDone, setInProgress, setTodos } from '../store/noteTaking/noteTaking.slice';
 import Modal from '../components/Modal';
 import { Note, NoteTypes } from '../types';
-import { changeNoteType, createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
+import { createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
 import { selectEmail } from '../store/auth/auth.selectors';
 import { getDateStringFromSeconds } from '../utils/noteTaking';
 
