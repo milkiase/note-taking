@@ -10,7 +10,7 @@ function SingIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     
-    const signInHanlder = async (e: SubmitEvent) => {
+    const signInHanlder = async (e: any) => {
         e.preventDefault();
         if(email && password){
             try{

@@ -1,4 +1,3 @@
-import { Note } from '../../types';
 import { PayloadAction } from './../../../node_modules/@reduxjs/toolkit/src/createAction';
 import { createSlice } from "@reduxjs/toolkit";
 

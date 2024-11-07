@@ -7,7 +7,7 @@ function SingUp() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    const signUpHanlder = async (e: SubmitEvent) => {
+    const signUpHanlder = async (e: any) => {
         e.preventDefault();
         if(email && password && confirmPassword){
             if(password != confirmPassword) {

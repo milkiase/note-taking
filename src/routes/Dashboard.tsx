@@ -1,4 +1,4 @@
-import React, { useState, MouseEvent, DragEvent, useMemo, useEffect } from 'react'
+import { useState, MouseEvent, useMemo, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDone, selectInProgress, selectTodos } from '../store/noteTaking/noteTaking.selectors';
 import { setDone, setInProgress, setTodos } from '../store/noteTaking/noteTaking.slice';
@@ -116,19 +116,19 @@ const  Dashboard = () => {
         setShowModal(false);
     }
 
-    const editTodoHandler = (e: MouseEvent<HTMLSpanElement, MouseEvent>, index: number, todo: string) => {
+    const editTodoHandler = (e: MouseEvent<HTMLSpanElement>, index: number, todo: string) => {
         e.stopPropagation();
         setEdittingTodoIndex(index);
         setEdittingTodo(todo);
     };
 
-    const editInProgressHandler = (e: MouseEvent<HTMLSpanElement, MouseEvent>, index: number, inProgress: string) => {
+    const editInProgressHandler = (e: MouseEvent<HTMLSpanElement>, index: number, inProgress: string) => {
         e.stopPropagation();
         setEdittingInProgressIndex(index);
         setEdittingInProgress(inProgress);
     };
     
-    const editDoneHandler = (e: MouseEvent<HTMLSpanElement, MouseEvent>, index: number, done: string) => {
+    const editDoneHandler = (e: MouseEvent<HTMLSpanElement>, index: number, done: string) => {
         e.stopPropagation();
         setEdittingDoneIndex(index);
         setEdittingDone(done);
@@ -161,11 +161,11 @@ const  Dashboard = () => {
         }
     }
 
-    const onDragEnterHandler = (e: any, target: string) => {
+    const onDragEnterHandler = (target: string) => {
         setDragTarget(target)
         // setDragSource(target)
     }
-    const onDropHandler = (e: DragEvent<HTMLInputElement>, source: string, sourceValue: Note) => {
+    const onDropHandler = (source: string, sourceValue: Note) => {
         if(dragTarget != source){
             switch(dragTarget){
                 case 'todo':
@@ -211,7 +211,7 @@ return (
         {/* <h1>Note Taking</h1> */}
         <div className=' flex flex-col md:flex-row gap-2'>
             <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'todo' ? 'border-blue-300 border-dotted border-2' : ''}`}
-                onDragEnter={(e) => onDragEnterHandler(e, 'todo')}>
+                onDragEnter={() => onDragEnterHandler('todo')}>
                 <div>ToDo</div>
                 <div className=' flex flex-col gap-2 text-sm' >
                     {
@@ -219,7 +219,7 @@ return (
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(todo, 'todo')}>
                                 <input type="text" value={edittingTodoIndex === index ?  edittingTodo: todo.title} className={`rounded-lg p-2 w-full cursor-pointer ${edittingTodoIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
                                     draggable={edittingTodoIndex != index} 
-                                    onDragEnd={(e) => onDropHandler(e, 'todo', todo)}
+                                    onDragEnd={() => onDropHandler('todo', todo)}
                                     readOnly={edittingTodoIndex != index} onChange={(e)=>{setEdittingTodo(e.target.value)}}></input>
                                 {edittingTodoIndex === index && <div className="flex mt-1 gap-2">
                                     <button className="bg-blue-400 rounded-sm text-black flex items-center h-6" onClick={saveEdittingTodoHandler}>Save</button>
@@ -248,14 +248,14 @@ return (
 
             <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'inProgress' ? 'border-blue-300 border-dotted border-2' : ''}`}>
                 <div>In Progress</div>
-                <div className=' flex flex-col gap-2 text-sm' onDragEnter={(e) => onDragEnterHandler(e, 'inProgress')}>
+                <div className=' flex flex-col gap-2 text-sm' onDragEnter={() => onDragEnterHandler('inProgress')}>
                     {
                         [...inProgresses].reverse().map((inProgress, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(inProgress, "inProgress")}>
                                 <input type="text" value={edittingInProgressIndex === index ?  edittingInProgress: inProgress.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingInProgressIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
                                     draggable={edittingInProgressIndex != index} readOnly={edittingInProgressIndex != index} onChange={(e)=>{setEdittingInProgress(e.target.value)}}
-                                    onDragEnd={(e) => onDropHandler(e, 'inProgress', inProgress)}
+                                    onDragEnd={() => onDropHandler('inProgress', inProgress)}
                                     ></input>
                                 {edittingInProgressIndex === index && <div className="flex mt-1 gap-2">
                                     <button className="bg-blue-400 rounded-sm text-black flex items-center h-6" onClick={saveEdittingInProgressHandler}>Save</button>
@@ -281,7 +281,7 @@ return (
                 </div>
             </div>
 
-            <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'done' ? 'border-blue-300 border-dotted border-2' : ''}`} onDragEnter={(e) => onDragEnterHandler(e, 'done')}>
+            <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'done' ? 'border-blue-300 border-dotted border-2' : ''}`} onDragEnter={() => onDragEnterHandler('done')}>
                 <div>Done</div>
                 <div className=' flex flex-col gap-2 text-sm'>
 
@@ -291,7 +291,7 @@ return (
                                 <input type="text" value={edittingDoneIndex === index ?  edittingDone: done.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingDoneIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
                                     draggable={edittingDoneIndex != index} readOnly={edittingDoneIndex != index} onChange={(e)=>{setEdittingDone(e.target.value)}}
-                                    onDragEnd={(e) => onDropHandler(e, 'done', done)}
+                                    onDragEnd={() => onDropHandler('done', done)}
                                     ></input>
                                 {edittingDoneIndex === index && <div className="flex mt-1 gap-2">
                                     <button className="bg-blue-400 rounded-sm text-black flex items-center h-6" onClick={saveEdittingDoneHandler}>Save</button>
