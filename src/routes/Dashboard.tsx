@@ -1,15 +1,18 @@
-import React, { useState, MouseEvent, DragEvent, useMemo } from 'react'
+import React, { useState, MouseEvent, DragEvent, useMemo, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDone, selectInProgress, selectTodos } from '../store/noteTaking/noteTaking.selectors';
 import { setDone, setInProgress, setTodos } from '../store/noteTaking/noteTaking.slice';
 import Modal from '../components/Modal';
 import { Note, NoteTypes } from '../types';
+import { createNote, getNotesAndDocuments } from '../utils/firebase/firebase.utils';
+import { selectEmail } from '../store/auth/auth.selectors';
 
 const  Dashboard = () => {
     const dispatch = useDispatch();
     const todos = useSelector(selectTodos);
     const inProgresses = useSelector(selectInProgress);
     const dones = useSelector(selectDone);
+    const email = useSelector(selectEmail);
     
     const [showModal, setShowModal] = useState(false);
     const [modalValue, setModalValue] = useState<{type: NoteTypes, note: Note} | null>(null);
@@ -27,29 +30,77 @@ const  Dashboard = () => {
     const [newDone, setNewDone] = useState("");
 
     const [currentAdd, setCurrentAdd] = useState<"todo" | "inprogress" | "done" | "">("");
-    
+    const [isAdding, setIsAdding] = useState(false);
+
     const [dragTarget, setDragTarget] = useState("");
+    
+    const fetchTodos = async () => {
+        const response = await getNotesAndDocuments('todo');
+        dispatch(setTodos(response.docs.map((doc) => doc.data() as Note)))
+    };
+    useEffect(()=>{
+        fetchTodos()
+    }, []);
 
-    const addNewToDoHandler = () => {
-        if(newTodo){
-            dispatch(setTodos([...todos, {title: newTodo}]));
+    const fetchInProgresses = async () => {
+        const response = await getNotesAndDocuments('inProgress');
+        dispatch(setInProgress(response.docs.map((doc) => doc.data() as Note)))
+    };
+    useEffect(()=>{
+        fetchInProgresses()
+    }, []);
+
+    const fetchDones = async () => {
+        const response = await getNotesAndDocuments('done');
+        dispatch(setDone(response.docs.map((doc) => doc.data() as Note)))
+    };
+    useEffect(()=>{
+        fetchDones();
+    }, []);
+
+    const addNewToDoHandler = async() => {
+        if(!newTodo) return;
+        setIsAdding(true);
+        try{
+            const response = await createNote({title: newTodo}, email as string, 'todo');
+            console.log(" add Todo response: ", response)
+            await fetchTodos()
+            setCurrentAdd("")
             setNewTodo("");
-            setCurrentAdd('');
+        }catch(error){
+            console.log("Error Adding a Todo: ", error)
         }
+        setIsAdding(false);
     }
 
-    const addNewInProgressHandler = () => {
+    const addNewInProgressHandler = async() => {
         if(newInProgress){
-            dispatch(setInProgress([...inProgresses, {title: newInProgress}]));
-            setNewInProgress("");
-            setCurrentAdd('');
+            setIsAdding(true);
+            try{
+                const response = await createNote({title: newInProgress}, email as string, 'inProgress');
+                console.log(" add inProgress response: ", response)
+                await fetchInProgresses()
+                setCurrentAdd("")
+                setNewInProgress("")
+            }catch(error){
+                console.log("Error Adding a InProgress: ", error)
+            }
+            setIsAdding(false);
         }
     }
-    const addNewDoneHandler = () => {
+    const addNewDoneHandler = async() => {
         if(newDone){
-            dispatch(setDone([...dones, {title: newDone}]));
-            setNewDone("");
-            setCurrentAdd('');
+            setIsAdding(true);
+            try{
+                const response = await createNote({title: newDone}, email as string, 'done');
+                console.log(" add done response: ", response)
+                await fetchDones()
+                setCurrentAdd("")
+                setNewDone("")
+            }catch(error){
+                console.log("Error Adding a Done: ", error)
+            }
+            setIsAdding(false);
         }
         
     }
@@ -164,7 +215,7 @@ return (
                 <div>ToDo</div>
                 <div className=' flex flex-col gap-2 text-sm' >
                     {
-                        todos.map((todo, index)=>{
+                        [...todos].reverse().map((todo, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(todo, 'todo')}>
                                 <input type="text" value={edittingTodoIndex === index ?  edittingTodo: todo.title} className={`rounded-lg p-2 w-full cursor-pointer ${edittingTodoIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
                                     draggable={edittingTodoIndex != index} 
@@ -187,7 +238,7 @@ return (
                             <input type="text" placeholder="Enter your note here.." className='rounded-lg p-2 pb-6 w-full outline-none' autoFocus value={newTodo} onChange={(e)=>setNewTodo(e.target.value)}></input>
                         </div>
                         <div className='flex gap-3 h-8 mt-1'>
-                            <button className=' bg-blue-400 rounded-sm text-black flex items-center' onClick={addNewToDoHandler}>Add card</button>
+                            <button className=' bg-blue-400 rounded-sm text-black flex items-center disabled:bg-blue-900 ' onClick={addNewToDoHandler} disabled={isAdding}>Add card</button>
                             <button className=' bg-transparent hover:bg-gray-700 text-2xl rounded-sm flex items-center w-fit p-1' onClick={()=>setCurrentAdd('')}>&times;</button>
                         </div>
                     </div>
@@ -199,7 +250,7 @@ return (
                 <div>In Progress</div>
                 <div className=' flex flex-col gap-2 text-sm' onDragEnter={(e) => onDragEnterHandler(e, 'inProgress')}>
                     {
-                        inProgresses.map((inProgress, index)=>{
+                        [...inProgresses].reverse().map((inProgress, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(inProgress, "inProgress")}>
                                 <input type="text" value={edittingInProgressIndex === index ?  edittingInProgress: inProgress.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingInProgressIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
@@ -222,7 +273,7 @@ return (
                             <input type="text" placeholder="Enter your note here.." className='rounded-lg p-2 pb-6 w-full outline-none' autoFocus draggable value={newInProgress} onChange={(e)=>setNewInProgress(e.target.value)}></input>
                         </div>
                         <div className='flex gap-3 h-8 mt-1'>
-                            <button className=' bg-blue-400 rounded-sm text-black flex items-center' onClick={addNewInProgressHandler}>Add card</button>
+                            <button className=' bg-blue-400 rounded-sm text-black flex items-center disabled:bg-blue-900 ' onClick={addNewInProgressHandler} disabled={isAdding}>Add card</button>
                             <button className=' bg-transparent hover:bg-gray-700 text-2xl rounded-sm flex items-center w-fit p-1' onClick={()=>setCurrentAdd('')}>&times;</button>
                         </div>
                     </div>
@@ -235,7 +286,7 @@ return (
                 <div className=' flex flex-col gap-2 text-sm'>
 
                     {
-                        dones.map((done, index)=>{
+                        [...dones].reverse().map((done, index)=>{
                             return <div className=' relative border-2 border-transparent  hover:rounded border-rounded cursor-pointer' key={index} onClick={()=>showModalHandler(done, "done")}>
                                 <input type="text" value={edittingDoneIndex === index ?  edittingDone: done.title} 
                                     className={`rounded-lg p-2 w-full cursor-pointer ${edittingDoneIndex===index ? 'pb-8 rounded-sm cursor-text' : ''}`} 
@@ -259,7 +310,7 @@ return (
                                 value={newDone} onChange={(e)=>setNewDone(e.target.value)}></input>
                         </div>
                         <div className='flex gap-3 h-8 mt-1'>
-                            <button className=' bg-blue-400 rounded-sm text-black flex items-center' onClick={addNewDoneHandler}>Add card</button>
+                            <button className=' bg-blue-400 rounded-sm text-black flex items-center disabled:bg-blue-900 ' onClick={addNewDoneHandler} disabled={isAdding}>Add card</button>
                             <button className=' bg-transparent hover:bg-gray-700 text-2xl rounded-sm flex items-center w-fit p-1' onClick={()=>setCurrentAdd('')}>&times;</button>
                         </div>
                     </div>
@@ -267,7 +318,9 @@ return (
                 </div>
             </div>
         </div>
-
+        {
+            JSON.stringify(todos)
+        }
         {
             showModal && modalValue && modalNote && <Modal value={modalNote} type={modalValue.type} onClose={closeModalHandler}></Modal>
         }

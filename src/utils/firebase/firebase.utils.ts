@@ -2,6 +2,10 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 import { getFirestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, query, collection, getDocs} from 'firebase/firestore';
+import {nanoid} from "nanoid";
+
+import { Note, NoteTypes } from '../../types';
 
 enum firebaseConfig  {
     apiKey = import.meta.env.VITE_API_KEY,
@@ -51,3 +55,26 @@ export const signInUser = async(email: string, password: string) => {
     throw new Error(errorMessage);
   });
 }
+
+
+export const createNote = async(note: Note, email: string, type: NoteTypes) => {
+  const noteRef = doc(db, type, nanoid())
+
+  await setDoc(noteRef, {
+    title: note.title,
+    createdBy: email,
+    updatedBy: email,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return await getDoc(noteRef);
+}
+
+export const getNotesAndDocuments = async(type: NoteTypes) => {
+  const collectionRef = collection(db, type);
+  const q = query(collectionRef);
+
+  const querySnapshot = await getDocs(q);
+  return querySnapshot;
+}
+

@@ -6,7 +6,11 @@ export type Note = {
         author: string;
         content: string;
         date: string;
-    }[]
+    }[],
+    createdBy ?: string;
+    updatedBy ?: string;
+    createdAt ?: string;
+    updatedAt ?: string;
 };
 
 export type NoteTypes = "todo" | "inProgress" | "done";
