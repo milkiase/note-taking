@@ -2,7 +2,7 @@ export type Note = {
     id?: string;
     title: string;
     description?: string;
-    comments: {
+    comments?: {
         author: string;
         content: string;
         date: string;

@@ -1,10 +1,12 @@
 import {useEffect, useRef, useState} from 'react'
+import { createPortal } from 'react-dom';
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Note, NoteTypes } from '../types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateDone, updateInProgress, updateTodo } from '../store/noteTaking/noteTaking.slice';
 import Comment from './Comment';
+import { selectEmail } from '../store/auth/auth.selectors';
 
 type ModalProps = {
     value: Note;
@@ -14,6 +16,7 @@ type ModalProps = {
 
 const  Modal = ({value, onClose, type}:ModalProps) => {
   const dispatch = useDispatch();
+  const email = useSelector(selectEmail);
   const [quillValue, setQuillValue] = useState(value.description);
   const [isCommenting, setIsCommenting] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -39,13 +42,13 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
     if(isCommenting && newComment) {
       switch(type){
         case 'todo':
-          dispatch(updateTodo({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: "Jonh Doe", content: newComment, date: "Today at 10:30 AM"}]}}));
+          dispatch(updateTodo({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
           break;
         case 'inProgress':
-          dispatch(updateInProgress({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: "Jonh Doe", content: newComment, date: "Today at 10:30 AM"}]}}));
+          dispatch(updateInProgress({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
           break;
         case 'done':
-            dispatch(updateDone({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: "Jonh Doe", content: newComment, date: "Today at 10:30 AM"}]}}));
+            dispatch(updateDone({title: value.title, value: {...value, comments: [...(value?.comments || []), {author: email as string, content: newComment, date: Date.now().toString()}]}}));
             break;
         default:
           break;
@@ -61,7 +64,7 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
     setIsCommenting(!isCommenting);
   };
 
-  return (
+  return createPortal((
     <div className="absolute h-screen w-screen bg-black bg-opacity-60 flex flex-col items-center justify-center text-gray-300">
         <div className="w-10/12 md:w-8/12 lg:w-1/2 h-fit py-2 bg-gray-800 rounded-lg relative flex flex-col items-start pl-5">
             <span className="absolute right-1 top-1 text-2xl cursor-pointer hover:bg-gray-500 rounded-full px-2" onClick={onClose}>&times;</span>
@@ -77,7 +80,7 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
               <div className="w-full flex flex-col gap-2">
                 <div className="flex gap-2">
                   <div className=' bg-blue-800 rounded-full text-base w-6 h-6 flex justify-center items-center'>
-                      {"Jonh Doe".split(' ').map(name => name[0].toUpperCase()).join('')}
+                      {email?.split(' ').map(name => name[0].toUpperCase()).join('')}
                   </div>
                   {!isCommenting ? <div className="bg-black bg-opacity-60 hover:bg-opacity-30 cursor-pointer w-5/6 rounded px-2 py-1 text-sm font-thin"
                       onClick={toggleCommentHandler}>Write a comment...</div>
@@ -100,7 +103,7 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
             </div>
         </div>
     </div>
-  )
+  ), document.getElementById("portal") as HTMLDivElement, null)
 }
 
 export default Modal;

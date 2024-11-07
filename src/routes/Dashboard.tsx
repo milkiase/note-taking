@@ -156,8 +156,8 @@ const  Dashboard = () => {
     }, [modalValue, todos, inProgresses, dones])
 
 return (
-    <div className=' w-screen h-screen flex flex-col items-center gap-3 relative'>
-        <h1>Note Taking</h1>
+    <div className=' w-screen  flex flex-col items-center gap-3 relative pt-10'>
+        {/* <h1>Note Taking</h1> */}
         <div className=' flex flex-col md:flex-row gap-2'>
             <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'todo' ? 'border-blue-300 border-dotted border-2' : ''}`}
                 onDragEnter={(e) => onDragEnterHandler(e, 'todo')}>
