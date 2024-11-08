@@ -359,7 +359,7 @@ return (
             </div>
         </div>
         {
-            showModal && modalValue && modalNote && <Modal value={modalNote} type={modalValue.type} onClose={closeModalHandler}></Modal>
+            showModal && modalValue && modalNote && <Modal value={modalNote} type={modalValue.type} onClose={closeModalHandler} key={JSON.stringify(modalNote)}></Modal>
         }
     </div>
 )

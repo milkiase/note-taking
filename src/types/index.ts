@@ -5,7 +5,7 @@ export type Note = {
     comments?: {
         author: string;
         content: string;
-        date: string;
+        createdAt: string;
     }[],
     createdBy ?: string;
     updatedBy ?: string;

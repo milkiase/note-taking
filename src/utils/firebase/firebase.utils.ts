@@ -23,6 +23,8 @@ const app = initializeApp(firebaseConfig)
 const auth = getAuth(app);
 
 export const db = getFirestore();
+// const firestoreDB = firebase.firestore();
+
 export const signUpUser = async (email: string, password: string) => {
 
   return await createUserWithEmailAndPassword(auth, email, password)
@@ -170,16 +172,45 @@ export const listenForDonesUpdates = (dispatch: Dispatch<UnknownAction>, addDone
           if(docData.updatedBy === email) return;
           console.log("updated by: ", docData.updatedBy)
           if (change.type === "added") {
+              console.log('document added')
               dispatch(addDone(docData as Note));
           }
           if (change.type === "modified") {
+              console.log('document modified')
               dispatch(updateDone({id: docData.id, value: docData as Note}))
           }
           if (change.type === "removed") {
+              console.log('document modified')
               dispatch(removeDone(docData.id));
           }
       });
   });
 
   return unsubscribe;
+}
+
+export const updateDescription = async(type: NoteTypes, note: Note, email: string) => {
+  const docRef = doc(db, type, note.id as string);
+  // const docRef = firestoreDB.collection(type).doc( note.id as string);
+  const batch = writeBatch(db);
+  // const colRef = collection(db, type)
+  // const docRef = colRef.doc(note.id as string);
+  // await docRef.update({description: note.description, updatedBy: email, updatedAt: serverTimestamp() });
+  batch.update(docRef, {description: note.description, updatedBy: email, updatedAt: serverTimestamp() });
+
+  // Commit the batch
+  await batch.commit();
+}
+
+export const addComment = async(type: NoteTypes, note: Note, comment: {author: string, content: string, createdAt: string}) => {
+  const docRef = doc(db, type, note.id as string);
+  // const docRef = firestoreDB.collection(type).doc( note.id as string);
+  const batch = writeBatch(db);
+  // const colRef = collection(db, type)
+  // const docRef = colRef.doc(note.id as string);
+  // await docRef.update({description: note.description, updatedBy: email, updatedAt: serverTimestamp() });
+  batch.update(docRef, {comments: [...(note.comments || []), comment] });
+
+  // Commit the batch
+  await batch.commit();
 }
