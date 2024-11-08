@@ -1,9 +1,10 @@
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { signOut } from '../store/auth/auth.slice';
+import { selectEmail } from '../store/auth/auth.selectors';
 
 function NavBar() {
     const dispatch = useDispatch();
-    
+    const email = useSelector(selectEmail);
     const signOutHandler = () => {
         // Add your Firebase sign-out logic here
         dispatch(signOut());
@@ -32,9 +33,14 @@ function NavBar() {
             </a> */}
             </div>
             <div>
-            <button onClick={signOutHandler} 
-                className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0">
-                Sign Out</button>
+            <div className='flex gap-2 items-center'>
+                <div>
+                    {email}
+                </div>
+                <button onClick={signOutHandler} 
+                    className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0">
+                    Sign Out</button>
+                </div>
             </div>
         </div>
     </nav>

@@ -105,7 +105,7 @@ const  Modal = ({value, onClose, type}:ModalProps) => {
 
   return createPortal((
     <div className="absolute h-screen w-screen bg-black bg-opacity-60 flex flex-col items-center justify-center text-gray-300">
-        <div className="w-10/12 md:w-8/12 lg:w-1/2 h-fit py-2 bg-gray-800 rounded-lg relative flex flex-col items-start pl-5">
+        <div className="w-10/12 md:w-8/12 lg:w-1/2 h-fit py-2 bg-gray-800 rounded-lg relative flex flex-col items-start md:pl-5">
             <span className="absolute right-1 top-1 text-2xl cursor-pointer hover:bg-gray-500 rounded-full px-2" onClick={onClose}>&times;</span>
             <p className="text-white">{value.title}</p>
             <div>

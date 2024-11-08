@@ -250,7 +250,7 @@ return (
     <div className=' w-screen  flex flex-col items-center gap-3 relative pt-10'>
         {/* <h1>Note Taking</h1> */}
         <div className=' flex flex-col md:flex-row gap-2'>
-            <div className={` rounded-lg p-2 bg-black h-fit ${dragTarget === 'todo' ? 'border-blue-300 border-dotted border-2' : ''}`}
+            <div className={` rounded-lg p-2  bg-black h-fit ${dragTarget === 'todo' ? 'border-blue-300 border-dotted border-2' : ''}`}
                 onDragEnter={() => onDragEnterHandler('todo')}>
                 <div>ToDo</div>
                 <div className=' flex flex-col gap-2 text-sm' >
